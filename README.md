@@ -6,6 +6,7 @@ Code formatters are really good at removing git churn.
 
 This Vim plugin assembles the pieces to do `git blame`'s job right.
 
+Youtube video example:
 [![Gistory Example](https://img.youtube.com/vi/Px45io_pphM/0.jpg)](https://www.youtube.com/watch?v=Px45io_pphM&feature=youtu.be)
 
 
