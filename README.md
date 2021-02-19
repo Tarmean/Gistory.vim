@@ -11,7 +11,7 @@ This Vim plugin assembles the pieces to do `git blame`'s job right.
 
 - `:Gistory` loads all commits which affect the current file into the quickfix list in a new tab. 
 - You always see the diff between the new and previous commit
-- Navigate the quickfix list to see different tabs
+- Navigate the quickfix list to jump to commits
 - Normalize whitespace and run lsp formatters via coc.nvimto clean up diffs
 
 
