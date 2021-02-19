@@ -6,7 +6,8 @@ Code formatters are really good at removing git churn.
 
 This Vim plugin assembles the pieces to do `git blame`'s job right.
 
-![Example](https://www.youtube.com/watch?v=Px45io_pphM&feature=youtu.be)
+[![Gistory Example](https://img.youtube.com/vi/Px45io_pphM/0.jpg)](https://www.youtube.com/watch?v=Px45io_pphM&feature=youtu.be)
+
 
 - `:Gistory` loads all commits which affect the current file into the quickfix list in a new tab. 
 - You always see the diff between the new and previous commit
