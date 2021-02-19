@@ -13,7 +13,7 @@ Youtube video example:
 - `:Gistory` loads all commits which affect the current file into the quickfix list in a new tab. 
 - You always see the diff between the new and previous commit
 - Navigate the quickfix list to jump to commits
-- Normalize whitespace and run lsp formatters via coc.nvimto clean up diffs
+- Gistory normalizes whitespace and runs lsp formatters via coc.nvim to clean up diffs
 
 
 Selecting a range only shows commits that affect that range. Git tries to track how this range changed over time, so if there is too much git churn all changes will be shown.
@@ -21,7 +21,7 @@ Selecting a range only shows commits that affect that range. Git tries to track 
 ![gistory range](gistory_range.gif)
 
 
-Git pickaxe can be used with `Gistory -S regex`. This shows commits where the number of matches of `regex` changed - great if a code formatter made span tracking useless.
+Git pickaxe can be used with `Gistory -S string`. This shows commits where the number of matches of `string` changed - great if a code formatter made span tracking useless. To use a regex, try `--pickaxe-regex`.
 
 ![gistory regex](gistory_regex.gif)
 
