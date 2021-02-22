@@ -39,12 +39,15 @@ The dependency for coc.nvim for formatting is fairly superficial. If it causes p
 ## Three Way Merge
 
 
-The plugin has a `ThreeWayMerge` merge tool helper which gives a three-way merge as three pairwise merges. The pairs are
+ 
+The plugin has a `ThreeWayMerge` command to help with merges. This opens both versions and the common ancestor as diffs in three tabs:
 
-- past & you
+- you & past & me
 - past & me
-- me & you
+- past & you
 
+The opened files are named accordingly.  Note that this runs whitespace normalization, so formatting, empty lines, and trailing whitespace will likely be gone after merging.
 
-`ThreeWayMerge!` replaces the workspace buffer by the old version and uses it as past to allow easy merging with `dp` and `do`. It checks that there were no changes since the previous commit, stash or reset them if necessary.
-Warning: In place ThreeWayMerge performs whitespace normalization on the workspace file, which runs code formatters and removes empty lines/trailing whitespace and replaces tabs with spaces.
+`ThreeWayMerge!` replaces the workspace buffer by the common ancestor, allowing quick merging with diffput and diffget.
+
+Video example: https://www.youtube.com/watch?v=LPqTLjO88yA&feature=youtu.be

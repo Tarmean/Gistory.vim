@@ -3,39 +3,39 @@
 "
 " To ensure that this doesn't run into edge cases we isolate this into a new
 " tab and wipe everything when the user leaves the tab
-function! SetupGistory(l1, l2, ...)
+function! gistory#setup(l1, l2, ...)
     tab split
     let t:diff_tab = tabpagenr()
     " augroup GistoryInit
         " au!
-        " au QuickFixCmdPre * call AddUncommited()
+        " au QuickFixCmdPre * call gistory#add_uncomitted()
     " augroup END
     if (a:l1 != 1) || (a:l2 != line("$"))
         exec a:l1 . "," . a:l2 . "Gclog -w " . join(a:000, " ")
     else
         exec "0Gclog -w " . join(a:000, " ")
     endif
-    call SetupDiff()
+    call gistory#setup_diff()
     let g:last_known = getqflist({'id':0, 'changedtick': 0, 'idx': 0})
     augroup Gistory
         au!
         autocmd TabLeave * tabc | augroup Gistory | au! | augroup END
-        autocmd BufEnter  * call QueueUpDiff()
-        autocmd CursorMoved  * call QueueUpDiff()
+        autocmd BufEnter  * call gistory#queue_diff()
+        autocmd CursorMoved  * call gistory#queue_diff()
     augroup END
 endfunc
-function! AddUncommited()
+function! gistory#add_uncomitted()
     let oldcd = getcwd()
     exec "cd ".FugitiveGitDir()."/.."
     let file = "./".expand('%')
 
     let idxp = fugitive#Find(":".expand('%'))
     let workp = expand("%:p")
-    " if WorkspaceChanged(l:file)
+    " if gistory#check_workspace_dirty(l:file)
     "     let g:l = [{'filename': l:workp, 'module': '[work] ', 'lnum': line('.')}]
     "     call setqflist(g:l, 'a')
     " endif
-    if IndexChanged(l:file)
+    if gistory#index_changed(l:file)
         let g:r = [{'filename': idxp, 'module': '[index]', 'lnum': line('.')}]
         call setqflist(g:r, 'a')
     endif
@@ -44,17 +44,17 @@ function! AddUncommited()
         au!
     augroup END
 endfunc
-function! QueueUpDiff()
+function! gistory#queue_diff()
     if exists('g:last_known') && g:last_known == getqflist({'id':0, 'changedtick': 0, 'idx': 0})
         return
     endif
     let g:last_known = getqflist({'id':0, 'changedtick': 0, 'idx': 0})
-    " SetupDiff must run last otherwise g:last_known is invalidated
+    " gistory#setup_diff must run last otherwise g:last_known is invalidated
     " immediately by other auto commands.
     " we abuse feedkeys as an event queue to ensure we run last.
-    call feedkeys(":call SetupDiff()\<cr>", 'n')
+    call feedkeys(":call gistory#setup_diff()\<cr>", 'n')
 endfunc
-function! SetupDiff()
+function! gistory#setup_diff()
     if !exists("t:diff_tab")
         echo "2"
         return
@@ -84,11 +84,11 @@ function! SetupDiff()
     wincmd w
     cc
     exec 'Gdiffsplit ' . paired_buf_ident
-    silent! call NormalizeWhitespace()
+    silent! call gistory#normalize_whitespace()
     wincmd w
-    silent! call NormalizeWhitespace()
+    silent! call gistory#normalize_whitespace()
 endfunc
-function! NormalizeWhitespace()
+function! gistory#normalize_whitespace()
     let oldmodifiable = &modifiable
     let oldreadonly = &readonly
     let oldwinid = win_getid()
@@ -122,81 +122,86 @@ function! s:Slash(path) abort
   endif
 endfunction
 
-function! GitBuf(object, title)
+function! gistory#load_git_buf(oft, object, title)
     let g:command = "Gread " . a:object
     exec g:command
-    exec "set ft=" . expand("%:e", a:title) 
-    silent! call NormalizeWhitespace()
+    exec "set ft=" . a:oft
+    silent! call gistory#normalize_whitespace()
     diffthis
     exec "file " . a:title
     setlocal buftype=nofile
     setlocal bufhidden=wipe
     setlocal noswapfile
 endfunction
-function! WorkspaceChanged(object)
+function! gistory#check_workspace_dirty(object)
     let work = readfile(a:object)
     let idx = s:content(":".a:object)
     return l:work != l:idx
 endfunc
-function! IndexChanged(object)
+function! gistory#index_changed(object)
     let head = s:content("@:".a:object)
     let idx = s:content(":".a:object)
     return l:head != l:idx
 endfunc
-function! GitContent(object)
+function! s:content(object)
     return fugitive#readfile(fugitive#Find(a:object))
 endfunc
 
 let g:diff_view_buffer = {}
-function! DiffViewFor(path, title)
+function! gistory#diff_for(oft, path, title)
     if (has_key(g:diff_view_buffer, a:path) && bufexists(g:diff_view_buffer[a:path]))
         echom "cached " . a:path . " => " . g:diff_view_buffer[a:path]
         exec "b " . g:diff_view_buffer[a:path]
+        diffthis
         return
     endif
-    call GitBuf(a:path, a:title)
+    call gistory#load_git_buf(a:oft, a:path, a:title)
     let g:diff_view_buffer[a:path] = bufnr()
 endfunc
-function LoadInPlace(cur_file)
-    if WorkspaceChanged(a:cur_file) || IndexChanged(a:cur_file)
-        throw "modified buffer or index since last commit " . a:cur_file
-    endif
-    let g:diff_view_buffer[a:cur_file] = bufnr(".")
+function gistory#reset_to_common_ancestor(cur_file)
+    " if gistory#check_workspace_dirty(a:cur_file) || gistory#index_changed(a:cur_file)
+    "     throw "modified buffer or index since last commit " . a:cur_file
+    " endif
+    let g:diff_view_buffer[a:cur_file] = bufnr()
     exec "Gread :1:".a:cur_file
-    silent! call NormalizeWhitespace()
+    silent! call gistory#normalize_whitespace()
     w
 endfunc
-function! DiffView(bang)
-    let s:current_file=expand('%:p')
+function! gistory#threeway(bang)
+    let g:diff_view_buffer = {}
     let s:current_file=expand('%:p')
     let s:title=expand('%:t')
     let s:me = ":2:" . s:current_file
     let s:you = ":3:" . s:current_file
     if a:bang == '!'
-        call LoadInPlace(s:current_file)
+        call gistory#reset_to_common_ancestor(s:current_file)
         let s:now = s:current_file
     else
-        let s:now = ":1:" . l:current_file
+        let s:now = ":1:" . s:current_file
     endif
-    call PopulateDiffViews(s:now, s:me, s:you, s:title)
+    let oft = &ft
+    call s:open_diffs(oft, s:now, s:me, s:you, s:title)
 endfunc
  
-function! PopulateDiffViews(past, me, you, title)
-    exec "tabnew"
-    call DiffViewFor(a:you, "you " . a:title)
+function! s:open_diffs(oft, past, me, you, title)
+    tabnew
+    call gistory#diff_for(a:oft, a:you, "you " . a:title)
     wincmd v
     enew
-    call DiffViewFor(a:me, "me " . a:title)
+    call gistory#diff_for(a:oft, a:past, "past " . a:title)
+    wincmd v
+    enew
+    call gistory#diff_for(a:oft, a:me, "me " . a:title)
 
-    exec "tabnew"
-    call DiffViewFor(a:past, "past " . a:title)
+    tabnew
+    call gistory#diff_for(a:oft, a:past, "past " . a:title)
     wincmd v
     enew
-    call DiffViewFor(a:me, "me " . a:title)
+    call gistory#diff_for(a:oft, a:me, "me " . a:title)
 
-    exec "tabnew"
-    call DiffViewFor(a:past, "past " . a:title)
+    tabnew
+    call gistory#diff_for(a:oft, a:past, "past " . a:title)
     wincmd v
     enew
-    call DiffViewFor(a:you, "you " . a:title)
+    call gistory#diff_for(a:oft, a:you, "you " . a:title)
 endfunction
