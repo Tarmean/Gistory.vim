@@ -46,7 +46,7 @@ The plugin has a `ThreeWayMerge` command to help with merges. This opens both ve
 - past & me
 - past & you
 
-The opened files are named accordingly.  Note that this runs whitespace normalization, so formatting, empty lines, and trailing whitespace will likely be gone after merging.
+The opened files are named accordingly.  Note that this runs whitespace normalization, empty lines and trailing whitespace will likely be gone after merging and formatters may be run.
 
 `ThreeWayMerge!` replaces the workspace buffer by the common ancestor, allowing quick merging with diffput and diffget.
 
