@@ -6,10 +6,10 @@
 function! SetupGistory(l1, l2, ...)
     tab split
     let t:diff_tab = tabpagenr()
-    augroup GistoryInit
-        au!
-        " au QuickFixCmdPre * call AddWorkspace(expand('%:p'))
-    augroup END
+    " augroup GistoryInit
+        " au!
+        " au QuickFixCmdPre * call AddUncommited()
+    " augroup END
     if (a:l1 != 1) || (a:l2 != line("$"))
         exec a:l1 . "," . a:l2 . "Gclog -w " . join(a:000, " ")
     else
@@ -24,8 +24,22 @@ function! SetupGistory(l1, l2, ...)
         autocmd CursorMoved  * call QueueUpDiff()
     augroup END
 endfunc
-function! AddWorkspace(filename)
-    call setqflist([{'filename': a:filename, 'module': 'working', 'lnum': line('.')}], 'a')
+function! AddUncommited()
+    let oldcd = getcwd()
+    exec "cd ".FugitiveGitDir()."/.."
+    let file = "./".expand('%')
+
+    let idxp = fugitive#Find(":".expand('%'))
+    let workp = expand("%:p")
+    " if WorkspaceChanged(l:file)
+    "     let g:l = [{'filename': l:workp, 'module': '[work] ', 'lnum': line('.')}]
+    "     call setqflist(g:l, 'a')
+    " endif
+    if IndexChanged(l:file)
+        let g:r = [{'filename': idxp, 'module': '[index]', 'lnum': line('.')}]
+        call setqflist(g:r, 'a')
+    endif
+    exec "cd ".oldcd
     augroup GistoryInit
         au!
     augroup END
@@ -119,6 +133,19 @@ function! GitBuf(object, title)
     setlocal bufhidden=wipe
     setlocal noswapfile
 endfunction
+function! WorkspaceChanged(object)
+    let work = readfile(a:object)
+    let idx = s:content(":".a:object)
+    return l:work != l:idx
+endfunc
+function! IndexChanged(object)
+    let head = s:content("@:".a:object)
+    let idx = s:content(":".a:object)
+    return l:head != l:idx
+endfunc
+function! GitContent(object)
+    return fugitive#readfile(fugitive#Find(a:object))
+endfunc
 
 let g:diff_view_buffer = {}
 function! DiffViewFor(path, title)
@@ -131,16 +158,10 @@ function! DiffViewFor(path, title)
     let g:diff_view_buffer[a:path] = bufnr()
 endfunc
 function LoadInPlace(cur_file)
-    let old = getline(0,'$')
-    let g:diff_view_buffer[a:cur_file] = bufnr(".")
-    vsplit|enew
-    exec "Gread HEAD:".a:cur_file
-    let new = getline(0,'$')
-    if l:old != l:new 
-        throw "modified buffer since last commit " . cur_file
+    if WorkspaceChanged(a:cur_file) || IndexChanged(a:cur_file)
+        throw "modified buffer or index since last commit " . a:cur_file
     endif
-    bd!
-    exec "b " . g:diff_view_buffer[a:cur_file]
+    let g:diff_view_buffer[a:cur_file] = bufnr(".")
     exec "Gread :1:".a:cur_file
     silent! call NormalizeWhitespace()
     w
@@ -151,7 +172,7 @@ function! DiffView(bang)
     let s:title=expand('%:t')
     let s:me = ":2:" . s:current_file
     let s:you = ":3:" . s:current_file
-    if a:bang
+    if a:bang == '!'
         call LoadInPlace(s:current_file)
         let s:now = s:current_file
     else

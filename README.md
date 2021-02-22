@@ -47,3 +47,4 @@ The plugin has a `ThreeWayMerge` merge tool helper which gives a three-way merge
 
 
 `ThreeWayMerge!` replaces the workspace buffer by the old version and uses it as past to allow easy merging with `dp` and `do`. It checks that there were no changes since the previous commit, stash or reset them if necessary.
+Warning: In place ThreeWayMerge performs whitespace normalization on the workspace file, which runs code formatters and removes empty lines/trailing whitespace and replaces tabs with spaces.
