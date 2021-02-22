@@ -108,3 +108,74 @@ function! s:Slash(path) abort
   endif
 endfunction
 
+function! GitBuf(object, title)
+    let g:command = "Gread " . a:object
+    exec g:command
+    exec "set ft=" . expand("%:e", a:title) 
+    silent! call NormalizeWhitespace()
+    diffthis
+    exec "file " . a:title
+    setlocal buftype=nofile
+    setlocal bufhidden=wipe
+    setlocal noswapfile
+endfunction
+
+let g:diff_view_buffer = {}
+function! DiffViewFor(path, title)
+    if (has_key(g:diff_view_buffer, a:path) && bufexists(g:diff_view_buffer[a:path]))
+        echom "cached " . a:path . " => " . g:diff_view_buffer[a:path]
+        exec "b " . g:diff_view_buffer[a:path]
+        return
+    endif
+    call GitBuf(a:path, a:title)
+    let g:diff_view_buffer[a:path] = bufnr()
+endfunc
+function LoadInPlace(cur_file)
+    let old = getline(0,'$')
+    let g:diff_view_buffer[a:cur_file] = bufnr(".")
+    vsplit|enew
+    exec "Gread HEAD:".a:cur_file
+    let new = getline(0,'$')
+    if l:old != l:new 
+        throw "modified buffer since last commit " . cur_file
+    endif
+    bd!
+    exec "b " . g:diff_view_buffer[a:cur_file]
+    exec "Gread :1:".a:cur_file
+    silent! call NormalizeWhitespace()
+    w
+endfunc
+function! DiffView(bang)
+    let s:current_file=expand('%:p')
+    let s:current_file=expand('%:p')
+    let s:title=expand('%:t')
+    let s:me = ":2:" . s:current_file
+    let s:you = ":3:" . s:current_file
+    if a:bang
+        call LoadInPlace(s:current_file)
+        let s:now = s:current_file
+    else
+        let s:now = ":1:" . l:current_file
+    endif
+    call PopulateDiffViews(s:now, s:me, s:you, s:title)
+endfunc
+ 
+function! PopulateDiffViews(past, me, you, title)
+    exec "tabnew"
+    call DiffViewFor(a:you, "you " . a:title)
+    wincmd v
+    enew
+    call DiffViewFor(a:me, "me " . a:title)
+
+    exec "tabnew"
+    call DiffViewFor(a:past, "past " . a:title)
+    wincmd v
+    enew
+    call DiffViewFor(a:me, "me " . a:title)
+
+    exec "tabnew"
+    call DiffViewFor(a:past, "past " . a:title)
+    wincmd v
+    enew
+    call DiffViewFor(a:you, "you " . a:title)
+endfunction

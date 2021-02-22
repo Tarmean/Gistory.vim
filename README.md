@@ -33,3 +33,17 @@ Dependencies:
 
 
 The dependency for coc.nvim for formatting is fairly superficial. If it causes problems, please speak up!
+
+
+
+## Three Way Merge
+
+
+The plugin has a `ThreeWayMerge` merge tool helper which gives a three-way merge as three pairwise merges. The pairs are
+
+- past & you
+- past & me
+- me & you
+
+
+`ThreeWayMerge!` replaces the workspace buffer by the old version and uses it as past to allow easy merging with `dp` and `do`. It checks that there were no changes since the previous commit, stash or reset them if necessary.
