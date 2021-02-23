@@ -7,6 +7,13 @@ if (!exists("g:gistory_skip_options"))
     set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram
 endif
 function! gistory#setup(l1, l2, ...)
+    if !exists('g:gistory_no_format') && !exists("*CocAction")
+      echohl WarningMsg
+      echo "Warning"
+      echohl None
+      echon ': CocAction not found, install coc.nvim or set g:gistory_no_format=1 to silence warning'
+      call getchar()
+    endif
     tab split
     let t:diff_tab = tabpagenr()
     " augroup GistoryInit
@@ -114,7 +121,9 @@ function! gistory#normalize_whitespace()
     sleep 100m
     retab
     sleep 10m
-    call CocAction("format")
+    if !exists('g:gistory_no_format') && exists("*CocAction")
+        call CocAction("format")
+    endif
     let buf = getline(1, '$')
     bw!
     0,$d

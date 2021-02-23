@@ -32,12 +32,10 @@ Dependencies:
 - coc.nvim
 
 
-The dependency for coc.nvim for formatting is fairly superficial. If it causes problems, please speak up!
-
+The plugin works without coc.nvim but you lose lsp based formatting which can *significantly* help with git churn.
 
 
 ## Three Way Merge
-
 
  
 The plugin has a `ThreeWayMerge` command to help with merges. This opens both versions and the common ancestor as diffs in three tabs:
@@ -55,8 +53,10 @@ Video example: https://www.youtube.com/watch?v=LPqTLjO88yA&feature=youtu.be
 
 ## Config
 
-Gistory defaults to fairly aggressive diff settings to ignore whitespace with `set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram`. Set `g:gistory_skip_options` to configure your own.
-
+Gistory defaults to fairly aggressive diff settings to ignore whitespace with `set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram`. Set `g:gistory_skip_options` to configure your own.  
 There are situations where e.g. trailing whitespace can affect semantics so be careful when merging.
+
+Set `g:gistory_no_format` to skip the warning if you do not have coc.nvim installed.
+
 
 
