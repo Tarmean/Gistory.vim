@@ -46,8 +46,17 @@ The plugin has a `ThreeWayMerge` command to help with merges. This opens both ve
 - past & me
 - past & you
 
-The opened files are named accordingly.  Note that this runs whitespace normalization, empty lines and trailing whitespace will likely be gone after merging and formatters may be run.
+The opened files are named accordingly.  Note that this runs code formatters and retab to normalize whitespace.
 
 `ThreeWayMerge!` replaces the workspace buffer by the common ancestor, allowing quick merging with diffput and diffget.
 
 Video example: https://www.youtube.com/watch?v=LPqTLjO88yA&feature=youtu.be
+
+
+## Config
+
+Gistory defaults to fairly aggressive diff settings to ignore whitespace with `set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram`. Set `g:gistory_skip_options` to configure your own.
+
+There are situations where e.g. trailing whitespace can affect semantics so be careful when merging.
+
+

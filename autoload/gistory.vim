@@ -3,6 +3,9 @@
 "
 " To ensure that this doesn't run into edge cases we isolate this into a new
 " tab and wipe everything when the user leaves the tab
+if (!exists("g:gistory_skip_options"))
+    set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram
+endif
 function! gistory#setup(l1, l2, ...)
     tab split
     let t:diff_tab = tabpagenr()
@@ -44,6 +47,8 @@ function! gistory#add_uncomitted()
         au!
     augroup END
 endfunc
+
+
 function! gistory#queue_diff()
     if exists('g:last_known') && g:last_known == getqflist({'id':0, 'changedtick': 0, 'idx': 0})
         return
@@ -102,8 +107,6 @@ function! gistory#normalize_whitespace()
     sleep 100m
     retab
     sleep 10m
-    %s/^\s*\n\|\s*$//
-    sleep 10m
     call CocAction("format")
     let buf = getline(1, '$')
     bw!
@@ -121,6 +124,7 @@ function! s:Slash(path) abort
     return a:path
   endif
 endfunction
+
 
 function! gistory#load_git_buf(oft, object, title)
     let g:command = "Gread " . a:object
@@ -174,6 +178,11 @@ function! gistory#threeway(bang)
     let s:me = ":2:" . s:current_file
     let s:you = ":3:" . s:current_file
     if a:bang == '!'
+        if &modified
+            " todo - figuring out if users changed the file since the parent
+            " commit is tricky since git modified it with conflict markers
+            throw "Changes will be overwritten"
+        endif
         call gistory#reset_to_common_ancestor(s:current_file)
         let s:now = s:current_file
     else
@@ -184,24 +193,32 @@ function! gistory#threeway(bang)
 endfunc
  
 function! s:open_diffs(oft, past, me, you, title)
-    tabnew
-    call gistory#diff_for(a:oft, a:you, "you " . a:title)
-    wincmd v
-    enew
-    call gistory#diff_for(a:oft, a:past, "past " . a:title)
-    wincmd v
-    enew
-    call gistory#diff_for(a:oft, a:me, "me " . a:title)
 
     tabnew
     call gistory#diff_for(a:oft, a:past, "past " . a:title)
     wincmd v
     enew
     call gistory#diff_for(a:oft, a:me, "me " . a:title)
-
     tabnew
     call gistory#diff_for(a:oft, a:past, "past " . a:title)
     wincmd v
     enew
     call gistory#diff_for(a:oft, a:you, "you " . a:title)
+
+    tabnew
+    let past_buf = g:diff_view_buffer[a:past]
+    call gistory#diff_for(a:oft, a:you, "you " . a:title)
+    call s:set_diff_put(l:past_buf)
+    wincmd v
+    enew
+    call gistory#diff_for(a:oft, a:past, "past " . a:title)
+    wincmd v
+    enew
+    call gistory#diff_for(a:oft, a:me, "me " . a:title)
+    call s:set_diff_put(l:past_buf)
 endfunction
+
+function! s:set_diff_put(buf)
+    exec "nnoremap <buffer> dp :diffput " . a:buf . "<cr>"
+    exec "vnoremap <buffer> dp :diffput " . a:buf . "<cr>"
+endfunc
