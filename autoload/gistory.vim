@@ -15,7 +15,9 @@ function! gistory#setup(l1, l2, ...)
     " augroup END
     if (a:l1 != 1) || (a:l2 != line("$"))
         exec a:l1 . "," . a:l2 . "Gclog -w " . join(a:000, " ")
+        let g:gistory#sparse = 1
     else
+        let g:gistory#sparse = a:0 > 0
         exec "0Gclog -w " . join(a:000, " ")
     endif
     call gistory#setup_diff()
@@ -59,7 +61,12 @@ function! gistory#queue_diff()
     " we abuse feedkeys as an event queue to ensure we run last.
     call feedkeys(":call gistory#setup_diff()\<cr>", 'n')
 endfunc
+" sparse is true => we always diff with the parent commit
+" sparse is false => we diff with the previous commit in the qflist
+" sparse gives better results´when we filter on range or pickaxe
+" but worse results when we have multi-parent commits in the qflist
 function! gistory#setup_diff()
+    let sparse = g:gistory#sparse
     if !exists("t:diff_tab")
         echo "2"
         return
@@ -69,7 +76,8 @@ function! gistory#setup_diff()
         return
     endif
     let qf = getqflist({'idx':0, 'items': 0})
-    if qf['idx'] == len(qf['items'])
+
+    if l:sparse || qf['idx'] == len(qf['items'])
         let paired_buf_ident = '!^'
     else
         let paired_buf = qf['items'][qf['idx']]['bufnr']
@@ -87,7 +95,6 @@ function! gistory#setup_diff()
     only
     cw
     wincmd w
-    cc
     exec 'Gdiffsplit ' . paired_buf_ident
     silent! call gistory#normalize_whitespace()
     wincmd w
@@ -162,7 +169,7 @@ function! gistory#diff_for(oft, path, title)
     call gistory#load_git_buf(a:oft, a:path, a:title)
     let g:diff_view_buffer[a:path] = bufnr()
 endfunc
-function gistory#reset_to_common_ancestor(cur_file)
+function! gistory#reset_to_common_ancestor(cur_file)
     " if gistory#check_workspace_dirty(a:cur_file) || gistory#index_changed(a:cur_file)
     "     throw "modified buffer or index since last commit " . a:cur_file
     " endif
