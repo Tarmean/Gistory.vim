@@ -68,5 +68,12 @@ There are situations where e.g. trailing whitespace can affect semantics so be c
 
 Set `g:gistory_no_format` to skip the warning if you do not have coc.nvim installed.
 
+The following mappings are recommended to make quickfix navigation easier:
 
+    augroup QuickFixMappings
+      autocmd!
+      autocmd BufReadPost quickfix nnoremap <buffer> <CR> <CR>
+      autocmd BufReadPost quickfix nnoremap <buffer> J :cnext<cr>
+      autocmd BufReadPost quickfix nnoremap <buffer> K :cprev<cr>
+    augroup end
 
