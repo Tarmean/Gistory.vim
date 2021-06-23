@@ -67,6 +67,7 @@ function! gistory#queue_diff()
     " immediately by other auto commands.
     " we abuse feedkeys as an event queue to ensure we run last.
     call feedkeys(":call gistory#setup_diff()\<cr>", 'n')
+
 endfunc
 " sparse is true => we always diff with the parent commit
 " sparse is false => we diff with the previous commit in the qflist
@@ -106,6 +107,7 @@ function! gistory#setup_diff()
     silent! call gistory#normalize_whitespace()
     wincmd w
     silent! call gistory#normalize_whitespace()
+
 endfunc
 function! gistory#normalize_whitespace()
     let oldmodifiable = &modifiable
