@@ -176,6 +176,7 @@ function! gistory#diff_for(oft, path, title)
         return
     endif
     call gistory#load_git_buf(a:oft, a:path, a:title)
+    echom "not cached " a:oft . ", ". a:path . " => " . bufnr()
     let g:diff_view_buffer[a:path] = bufnr()
 endfunc
 function! gistory#reset_to_common_ancestor(cur_file)
@@ -205,6 +206,7 @@ function! gistory#threeway(bang)
         let s:now = ":1:" . s:current_file
     endif
     let oft = &ft
+    exec "cd ".expand('%:h')
     call s:open_diffs(oft, s:now, s:me, s:you, s:title)
 endfunc
  
@@ -215,6 +217,7 @@ function! s:open_diffs(oft, past, me, you, title)
     wincmd v
     enew
     call gistory#diff_for(a:oft, a:me, "me " . a:title)
+
     tabnew
     call gistory#diff_for(a:oft, a:past, "past " . a:title)
     wincmd v
