@@ -4,7 +4,7 @@
 " To ensure that this doesn't run into edge cases we isolate this into a new
 " tab and wipe everything when the user leaves the tab
 if (!exists("g:gistory_skip_options"))
-    set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram
+    set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram,vertical
 endif
 function! gistory#setup(l1, l2, ...)
     if !exists('g:gistory_no_format') && !exists("*CocAction")
@@ -213,8 +213,8 @@ endfunc
 function! s:open_diffs(oft, past, me, you, title)
 
     tabnew
-    let past_buf = g:diff_view_buffer[a:past]
     call gistory#diff_for(a:oft, a:you, "you " . a:title)
+    let past_buf = g:diff_view_buffer[a:past]
     call s:set_diff_put(l:past_buf)
     wincmd v
     enew
