@@ -77,3 +77,11 @@ The following mappings are recommended to make quickfix navigation easier:
       autocmd BufReadPost quickfix nnoremap <buffer> K :cprev<cr>
     augroup end
 
+In the `:Gistory` view the newer version opens on the right by default. This can be disabled by
+
+    let g:gistory#new_diff_right = 0
+
+## Known Issues
+
+
+Fugitive's `Gclog` has breaks when you filter out commits which renamed/copied the file. This is a fairly niche problem, but it is fixable with the git `--name-only` flag at the cost of adding yet more special cases to fugitive. If this problem affects you enought ot motivate a change please open an issue!

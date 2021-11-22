@@ -6,6 +6,9 @@
 if (!exists("g:gistory_skip_options"))
     set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram,vertical
 endif
+if (!exists("g:gistory#new_diff_right"))
+    let g:gistory#new_diff_right = 1
+endif
 function! gistory#setup(l1, l2, ...)
     if !exists('g:gistory_no_format') && !exists("*CocAction")
       echohl WarningMsg
@@ -20,13 +23,16 @@ function! gistory#setup(l1, l2, ...)
         " au!
         " au QuickFixCmdPre * call gistory#add_uncomitted()
     " augroup END
+    let search_pat = s:GetOpt(a:000, "-G", "-S")
     if (a:l1 != 1) || (a:l2 != line("$"))
+        let search_pat = getline(a:l1)
         exec a:l1 . "," . a:l2 . "Gclog -w " . join(a:000, " ")
         let g:gistory#sparse = 1
     else
         let g:gistory#sparse = a:0 > 0
         exec "0Gclog -w " . join(a:000, " ")
     endif
+    call s:ApplySearch(l:search_pat)
     call gistory#setup_diff()
     let g:last_known = getqflist({'id':0, 'changedtick': 0, 'idx': 0})
     augroup Gistory
@@ -36,6 +42,16 @@ function! gistory#setup(l1, l2, ...)
         autocmd CursorMoved  * call gistory#queue_diff()
     augroup END
 endfunc
+function s:ApplySearch(pat)
+    if type(a:pat) != type("") || a:pat==""
+        return
+    endif
+    let qf = getqflist()
+    for q in qf
+        let q['pattern'] = a:pat
+    endfor
+    call setqflist(qf, 'r')
+endfunction
 function! gistory#add_uncomitted()
     let oldcd = getcwd()
     exec "cd ".FugitiveGitDir()."/.."
@@ -100,12 +116,22 @@ function! gistory#setup_diff()
         endif
     endif
     only
-    cw
-    wincmd w
     exec 'Gdiffsplit ' . paired_buf_ident
     silent! call gistory#normalize_whitespace()
     wincmd w
     silent! call gistory#normalize_whitespace()
+    if g:gistory#new_diff_right
+        wincmd L
+    endif
+    cw
+    wincmd J
+    wincmd w
+    wincmd w
+    let item = qf['items'][qf['idx']-1]
+    if item['pattern'] != ''
+        0
+        exec "g/". item['pattern'] . "/if foldclosed('.') == -1 | echo | endif"
+    endif
 endfunc
 function! gistory#normalize_whitespace()
     let oldmodifiable = &modifiable
@@ -239,3 +265,16 @@ function! s:set_diff_put(buf)
     exec "nnoremap <buffer> dp :diffput " . a:buf . "<cr>"
     exec "vnoremap <buffer> dp :diffput " . a:buf . "<cr>"
 endfunc
+
+
+" Stolen from fugitive
+function! s:GetOpt(args, ...) abort
+  let args = a:args[0 : index(a:args, '--')]
+  let opts = copy(a:000)
+  for opt in opts
+    let idx = index(args, opt)
+    if l:idx != -1
+      return args[idx+1]
+    endif
+  endfor
+endfunction
