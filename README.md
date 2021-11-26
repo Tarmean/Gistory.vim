@@ -31,7 +31,7 @@ Selecting a range only shows commits that affect that range. Git tries to track 
 ![gistory range](gistory_range.gif)
 
 
-Git pickaxe can be used with `Gistory -S string`. This shows commits where the number of matches of `string` changed - great if a code formatter made span tracking useless. To use a regex, try `--pickaxe-regex`. `Gistory -G regex` finds commits where regex matches in a diff hunk.
+Git pickaxe can be used with `Gistory -S string`. This shows commits where the number of matches of `string` changed - great if a code formatter made span tracking useless. To use a regex, try `--pickaxe-regex`. `Gistory -G regex` finds commits where regex matches in a diff hunk, showing commits with nearby changes even if the pattern itself wasn't changed.
 
 ![gistory regex](gistory_regex.gif)
 
