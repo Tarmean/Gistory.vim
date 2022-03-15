@@ -127,10 +127,10 @@ function! gistory#setup_diff()
     wincmd J
     wincmd w
     wincmd w
-    let item = qf['items'][qf['idx']-1]
-    if item['pattern'] != ''
+    if len(qf['items']) > 0 && len(qf['items'][0]['pattern']) > 0
         0
-        exec "g/". item['pattern'] . "/if foldclosed('.') == -1 | echo | endif"
+        let pat = qf['items'][0]['pattern']
+        exec "g/". escape(pat, '/') . "/if foldclosed('.') == -1 | echo | endif"
     endif
 endfunc
 function! gistory#normalize_whitespace()
