@@ -66,7 +66,7 @@ Video example: https://www.youtube.com/watch?v=LPqTLjO88yA&feature=youtu.be
 Gistory defaults to fairly aggressive diff settings to ignore whitespace with `set diffopt+=hiddenoff,iblank,iwhiteeol,algorithm:histogram`. Set `g:gistory_skip_options` to configure your own.  
 There are situations where e.g. trailing whitespace can affect semantics so be careful when merging.
 
-Set `g:gistory_no_format` to skip the warning if you do not have coc.nvim installed.
+Set `g:gistory_no_format` to skip the warning if you do not have coc.nvim installed. If language servers for specific languages are slow to start they can be disabled with `let g:gistory_format_ft = {'hs': 0}`.
 
 The following mappings are recommended to make quickfix navigation easier:
 

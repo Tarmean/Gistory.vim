@@ -9,6 +9,9 @@ endif
 if (!exists("g:gistory#new_diff_right"))
     let g:gistory#new_diff_right = 1
 endif
+if (!exists("g:gistory_format_ft"))
+    let g:gistory_format_ft = {}
+endif
 function! gistory#setup(l1, l2, ...)
     if !exists('g:gistory_no_format') && !exists("*CocAction")
       echohl WarningMsg
@@ -148,7 +151,10 @@ function! gistory#normalize_whitespace()
     retab
     sleep 10m
     if !exists('g:gistory_no_format') && exists("*CocAction")
-        call CocAction("format")
+        let ft = expand("%:e")
+        if !has_key(g:gistory_format_ft, ft) || g:gistory_format_ft[ft]
+            call CocAction("format")
+        endif
     endif
     let buf = getline(1, '$')
     bw!
