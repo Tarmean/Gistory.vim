@@ -104,22 +104,19 @@ function! gistory#setup_diff()
     let qf = getqflist({'idx':0, 'items': 0})
 
     if l:sparse || qf['idx'] == len(qf['items'])
-        let paired_buf_ident = '!^'
+        let paired_fug_data = '!^'
     else
         let paired_buf = qf['items'][qf['idx']]['bufnr']
         let paired_buf_name = bufname(paired_buf)
-        let paired_fug_data = FugitiveBufferIdent(paired_buf_name)
-        if len(paired_fug_data) != 0
-            let paired_buf_path = s:Slash(paired_fug_data[1][0:-6] . paired_fug_data[3])
-            let paired_buf_ident = paired_fug_data[2] . ':' . paired_buf_path
-            let g:ident = paired_buf_ident
-        else
+        let paired_fug_data = FugitiveParse(paired_buf_name)[0]
+        if (len(paired_fug_data) == 0)
             let g:last_known = getqflist({'id':0, 'changedtick': 0, 'idx': 0})
             return
         endif
     endif
     only
-    exec 'Gdiffsplit ' . paired_buf_ident
+    let gdiffsplit_command = 'Gdiffsplit ' . paired_fug_data
+    exec gdiffsplit_command
     silent! call gistory#normalize_whitespace()
     wincmd w
     silent! call gistory#normalize_whitespace()
@@ -136,6 +133,7 @@ function! gistory#setup_diff()
         exec "g/". escape(pat, '/') . "/if foldclosed('.') == -1 | echo | endif"
     endif
 endfunc
+
 function! gistory#normalize_whitespace()
     let oldmodifiable = &modifiable
     let oldreadonly = &readonly
